@@ -287,7 +287,15 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
   }
 
   @Input()
-  public set active(selectedItems:Array<any>) {
+  public set active(selectedItems:Array<any>|any) {
+    if (!this.multiple) {
+      if (!selectedItems || selectedItems.length === 0) {
+        this._active = null;
+      } else {
+        this._active = selectedItems[0].id;
+      }
+      return;
+    }
     if (!selectedItems || selectedItems.length === 0) {
       this._active = [];
     } else {
@@ -314,8 +322,14 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
   public activeOption:SelectItem;
   public element:ElementRef;
 
-  public get active():Array<any> {
-    return this._active;
+  public get active():Array<any>|any {
+    if (this.multiple) {
+      return this._active;
+    }
+    if (!this._active[0]) {
+      return null;
+    }
+    return this._active[0].id;
   }
 
   private set optionsOpened(value:boolean){
@@ -440,8 +454,8 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this.data.next(this.active);
       this.doEvent('removed', item);
     }
-    if (this.multiple === false) {
-      this.active = [];
+    if (!this.multiple) {
+      this.active = null;
       this.data.next(this.active);
       this.doEvent('removed', item);
     }
@@ -470,6 +484,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
   public writeValue(val:any):void {
     this.active = val;
     this.data.emit(this.active);
+    return;
   }
 
   public registerOnChange(fn:(_:any) => {}):void {this.onChange = fn;}
